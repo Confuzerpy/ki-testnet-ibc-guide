@@ -235,6 +235,7 @@ The output should be:
 
 
 Example of txs from kichain to croeseid:
+[B5120764919AC7C5F7B4FC03DE0F82C4A33D647402D60A5BD672B092A9110572](https://ki.thecodes.dev/tx/B5120764919AC7C5F7B4FC03DE0F82C4A33D647402D60A5BD672B092A9110572)
 
 Example of txs from croeseid to kichain:
 
