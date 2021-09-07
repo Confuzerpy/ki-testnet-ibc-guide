@@ -143,13 +143,7 @@ CRO-RELAYER-ADDRESS -the croeseid relayer address. To get the address type the f
 #### 13. Create a channel between the two networks:
 - ###### rly paths generate [src-chain-id] [dst-chain-id] [name] [flags]
 
-As a paths names im using ```fromkichain``` and ```tokichain``` names.
-- From kichain to croeseid
-
-```rly paths generate kichain-t-4 testnet-croeseid-4 fromkichain --port=transfer```
-- From croeseid to kichain
-
-```rly paths generate testnet-croeseid-4 kichain-t-4 tokichain --port=transfer```
+```rly paths generate kichain-t-4 testnet-croeseid-4 transfer --port=transfer```
 
 ##### Note. If you have some issue like:
 
@@ -163,7 +157,7 @@ navigate to paths line. delete "paths{}" and paste the folowing code instead
 
 ``` 
 paths:
-  fromkichain:
+  transfer:
     src:
       chain-id: kichain-t-4
       port-id: transfer
@@ -171,38 +165,18 @@ paths:
       version: ics20-1
     dst:
       chain-id: testnet-croeseid-4
-      port-id: transfer
-      order: UNORDERED
-      version: ics20-1
-    strategy:
-      type: naive
-  tokichain:
-    src:
-      chain-id: testnet-croeseid-4
-      port-id: transfer
-      order: UNORDERED
-      version: ics20-1
-    dst:
-      chain-id: kichain-t-4
       port-id: transfer
       order: UNORDERED
       version: ics20-1
     strategy:
       type: naive
 ```
+
 ###### 14. Next step lets create channel from croeseid to kichain
 Note this command might take some time. If you have some errors try to repeat several times.
 Creating channel from croeseid to kichain
 
-```rly tx link tokichain```
-
-If operation completes successfull the otput of the last line should be like:
-
-```★ Channel created: [testnet-croeseid-4]chan{channel-16}port{transfer} -> [kichain-t-4]chan{channel-40}port{transfer}```
-
-Creating channel from kichain to croeseid
-
-```rly tx link fromkichain```
+```rly tx link transfer```
 
 If operation completes successfull the otput of the last line should be like:
 
@@ -212,14 +186,26 @@ If operation completes successfull the otput of the last line should be like:
 
 ```
 rly paths list -d
-0: fromkichain          -> chns(✔) clnts(✔) conn(✔) chan(✔) (kichain-t-4:transfer<>testnet-croeseid-4:transfer)
-1: tokichain            -> chns(✔) clnts(✔) conn(✔) chan(✔) (testnet-croeseid-4:transfer<>kichain-t-4:transfer)
+0: transfer          -> chns(✔) clnts(✔) conn(✔) chan(✔) (kichain-t-4:transfer<>testnet-croeseid-4:transfer)
 ```
-###### 16. Lets send some tokens
+
+###### 16. Start relayer as a service
+[Credits to gooodness](https://github.com/goooodnes)
+```
+sudo tee /etc/systemd/system/rlyd.service > /dev/null <<EOF [Unit] Description=relayer client After=network-online.target, chaind.service [Service] User=$USER ExecStart=$(which rly) start transfer Restart=always RestartSec=3 LimitNOFILE=65535 [Install] WantedBy=multi-user.target EOF
+```
+Start rlyd daemon
+```
+sudo systemctl daemon-reload
+sudo systemctl enable rlyd
+sudo systemctl start rlyd
+```
+
+###### 17. Lets send some tokens
 
 From croeseid to kichain
 
-```rly tx transfer testnet-croeseid-4 kichain-t-4 1000000basetcro tki1__YOUR_WALLET --path tokichain```
+```rly tx transfer testnet-croeseid-4 kichain-t-4 1000000basetcro tki1__YOUR_WALLET --path transfer```
 
 The output should be:
 ###### ✔ [testnet-croeseid-4]@{289697} - msg(0:transfer) hash(1C1....your_hash....07)
@@ -227,7 +213,7 @@ The output should be:
 
 From kichain to croeseid
 
-```rly tx transfer kichain-t-4 testnet-croeseid-4 666000utki tcro__YOUR_WALLET --path fromkichain```
+```rly tx transfer kichain-t-4 testnet-croeseid-4 666000utki tcro__YOUR_WALLET --path transfer```
 
 The output should be:
 ###### ✔ [kichain-t-4]@{221552} - msg(0:transfer) hash(E1....your_hash....6)
