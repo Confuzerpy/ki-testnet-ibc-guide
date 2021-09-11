@@ -1,7 +1,24 @@
 ##  _Kichain ibc relayer guide_
 - Special thanks to [Northa](https://github.com/Northa) and [goooodnes](https://github.com/goooodnes) from [Let's encrypt community](https://t.me/kichain_ru)
 
-in this guide we will using ibc between [kichain-t-4](https://github.com/KiFoundation/ki-testnet-challenge) and [testnet-croeseid-4](https://crypto.org/docs/getting-started/croeseid-testnet.html#step-1-get-the-crypto-org-chain-testnet-binary)
+<details>
+  <summary>Requirements:</summary>
+  
+4cpu, 4gb ram, ssd > 80Gb
+
+ubuntu 20.04 lts
+
+[go version go1.16.5](https://dl.google.com/go/go1.16.5.linux-amd64.tar.gz)
+
+[relayer v0.9.3](https://github.com/cosmos/relayer)
+
+[kichain-t-4 node](https://github.com/KiFoundation/ki-networks/tree/v0.1/Testnet/kichain-t-4)
+
+[testnet-croeseid-4 node](https://crypto.org/docs/getting-started/croeseid-testnet.html#step-1-get-the-crypto-org-chain-testnet-binary)
+  
+</details>
+
+In this guide, we will examine how to setup ibc relayer between [kichain-t-4](https://github.com/KiFoundation/ki-testnet-challenge) and [testnet-croeseid-4](https://crypto.org/docs/getting-started/croeseid-testnet.html#step-1-get-the-crypto-org-chain-testnet-binary)
 
 
 #### 1. Install ibc relayer from the [official repo](https://github.com/cosmos/relayer)
@@ -21,11 +38,11 @@ rly config init
 ```
 #### 3. Once initialized lets configure it:
 ```
-cd && mkdir relayer && cd relayer
+cd && mkdir -p ./relayer/kichain && cd ./relayer/kichain
 ```
 Create config for the kichain-t-4 network
 ```
-nano ki_config.json
+tee ki_config.json > /dev/null <<EOF
 {
 "chain-id": "kichain-t-4",
   "rpc-addr": "http://127.0.0.1:26657",
@@ -34,12 +51,12 @@ nano ki_config.json
   "gas-prices": "0.025utki",
   "trusting-period": "48h"
 }
+EOF
 ```
 Create config for the croeseid testnet network
 - _note in my case i configured my croeseid testnet to operate with port 26552. Your port might be different!_
 ```
-nano cro_config.json
-
+tee cro_config.json > /dev/null <<EOF
 {
   "chain-id": "testnet-croeseid-4",
   "rpc-addr": "http://127.0.0.1:26652",
@@ -48,6 +65,7 @@ nano cro_config.json
   "gas-prices": "0.025basetcro",
   "trusting-period": "48h"
 }
+EOF
 ```
 
 #### 4. Next step we should add our configs to the relayer
@@ -93,7 +111,7 @@ key(0): cro_test -> tcro__YOUR_WALLET
 
 ```rly chains edit testnet-croeseid-4 key cro_test```
 
-#### 8. Change timeout in the relayer settings
+#### 8. Changing timeout in the relayer config
 
 ```nano ~/.relayer/config/config.yaml```
 
@@ -102,7 +120,7 @@ Find the line ```timeout: 10s``` and replace to ```timeout: 10m```
 #### 9. Make sure you have enough funds in you wallets.
 - If you dont have funds. Request some via faucet.
 
-[KI foundation](https://discord.gg/DSSUC7Tt)
+[KI foundation](https://discord.gg/DSSUC7Tt) under testnet-challenge thread
 
 [Croeseid faucet](https://crypto.org/faucet)
 
@@ -134,6 +152,8 @@ rly chains list -d
 - ###### rly paths generate [src-chain-id] [dst-chain-id] [name] [flags]
 
 ```rly paths generate kichain-t-4 testnet-croeseid-4 transfer --port=transfer```
+
+If you have some issues try [Troubleshooting guide](#help)
 
 
 #### 14. Create channel
@@ -194,7 +214,75 @@ Example of txs from croeseid to kichain:
 [280F26EB11925961944ABCDEC14DEBFA87CD7502B915E67AF7B94C1CC496E4F2](https://ki.thecodes.dev/tx/280F26EB11925961944ABCDEC14DEBFA87CD7502B915E67AF7B94C1CC496E4F2)
 [707286841BA7330A4AF0EDC550C8F225268DD6EB91E393F12CCDD85C6607A34E](https://ki.thecodes.dev/tx/707286841BA7330A4AF0EDC550C8F225268DD6EB91E393F12CCDD85C6607A34E)
 
-## Helpful links:
+## Help
+<details>
+  <summary>Troubleshooting guide</summary>
+<details>
+<summary>Error: no concrete type registered for type URL </summary>
+in this case we have to create paths manually. Open relayer config.yaml
+
+```nano ~/.relayer/config/config.yaml```
+
+navigate to paths line. delete "paths{}" and paste the folowing code instead
+
+``` 
+paths:
+  transfer:
+    src:
+      chain-id: kichain-t-4
+      port-id: transfer
+      order: UNORDERED
+      version: ics20-1
+    dst:
+      chain-id: testnet-croeseid-4
+      port-id: transfer
+      order: UNORDERED
+      version: ics20-1
+    strategy:
+      type: naive
+```
+
+</details>
+<details>
+<summary>Error: failed to get trusted header</summary>
+Try to update client manually
+	
+```rly tx update-clients transfer```
+	
+If this doesn't help you have to re-generate a new path
+</details>
+  
+<details>
+<summary>Error: more than one transaction returned with query</summary>
+Check if you have unrelayed packets
+	
+```rly q unrelayed transfer```
+	
+If you have some try
+	
+```rly tx rly transfer```
+
+If that doesn't work, then create a new path
+</details>
+<details>
+<summary>Error: no transactions returned with query</summary>
+Check if you have unrelayed packets
+	
+```rly q unrelayed transfer```
+	
+If you have some try
+	
+```rly tx rly transfer```
+
+If that doesn't work, then create a new path
+
+</details>
+
+</details>
+
+
+
+## Links:
 [KI foundation discord](https://discord.gg/DSSUC7Tt)
 
 [Kichain testnet explorer 1](https://kichain-t-3.blockchain.ki/)
