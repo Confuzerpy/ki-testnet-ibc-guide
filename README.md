@@ -25,7 +25,7 @@ In this guide, we will examine how to setup ibc relayer between [kichain-t-4](ht
 Check the relayer version. In my case it was 0.9.3 version
 
 ```sh 
-rly version
+$ rly version
 version: v0.9.3
 commit: 4b81fa59055e3e94520bdfae1debe2fe0b747dc1
 cosmos-sdk: v0.42.4
@@ -34,15 +34,15 @@ go: go1.15.11 linux/amd64
 
 #### 2. Intialize relayer
 ```
-rly config init
+$ rly config init
 ```
 #### 3. Once initialized lets configure it:
 ```
-cd && mkdir -p ./relayer/kichain && cd ./relayer/kichain
+$ cd && mkdir -p ./relayer/kichain && cd ./relayer/kichain
 ```
 Create config for the kichain-t-4 network
 ```
-tee ki_config.json > /dev/null <<EOF
+$ tee ki_config.json > /dev/null <<EOF
 {
 "chain-id": "kichain-t-4",
   "rpc-addr": "http://127.0.0.1:26657",
@@ -56,7 +56,7 @@ EOF
 Create config for the croeseid testnet network
 - _note in my case i configured my croeseid testnet to operate with port 26552. Your port might be different!_
 ```
-tee cro_config.json > /dev/null <<EOF
+$ tee cro_config.json > /dev/null <<EOF
 {
   "chain-id": "testnet-croeseid-4",
   "rpc-addr": "http://127.0.0.1:26652",
@@ -70,50 +70,50 @@ EOF
 
 #### 4. Next step we should add our configs to the relayer
 
-```rly chains add -f ki_config.json```
+```$ rly chains add -f ki_config.json```
 
-```rly chains add -f cro_config.```
+```$ rly chains add -f cro_config.```
 #### 5. Generate/import wallets.
 - _Notice in my case im using key name ki_test and cro_test.
 You can specify watever you want name._
 
 ###### Generating new keys
-```rly keys add kichain-t-4 ki_test```
+```$ rly keys add kichain-t-4 ki_test```
 
-```rly keys add testnet-croeseid-4 --coin-type 1 cro_test```
+```$ rly keys add testnet-croeseid-4 --coin-type 1 cro_test```
 	
 #### WARNING! 
 - We using ```--coin-type 1``` when generating croeseid wallet
   because croesseid using DIFFERENT derivation path!
 
 ###### Import existing keys
-```rly keys restore kichain-t-4 ki_test "YOUR MNEMONIC"```
+```$ rly keys restore kichain-t-4 ki_test "YOUR MNEMONIC"```
 
-```rly keys restore "testnet-croeseid-4" cro_test --coin-type 1 "YOUR MNEMONIC"```
+```$ rly keys restore "testnet-croeseid-4" cro_test --coin-type 1 "YOUR MNEMONIC"```
 
 
 
 #### 6. Checking keys
 
 ```sh
-rly keys list kichain-t-4
+$ rly keys list kichain-t-4
 
 key(0): ki_test -> tki1__YOUR_WALLET
 ```
 ```sh
-rly keys list testnet-croeseid-4
+$ rly keys list testnet-croeseid-4
 
 key(0): cro_test -> tcro__YOUR_WALLET
 ```
 #### 7. Add the newly created keys to the config of the relayer:
 
-```rly chains edit kichain-t-4 key ki_test```
+```$ rly chains edit kichain-t-4 key ki_test```
 
-```rly chains edit testnet-croeseid-4 key cro_test```
+```$ rly chains edit testnet-croeseid-4 key cro_test```
 
 #### 8. Changing timeout in the relayer config
 
-```nano ~/.relayer/config/config.yaml```
+```$ nano ~/.relayer/config/config.yaml```
 
 Find the line ```timeout: 10s``` and replace to ```timeout: 10m```
 
@@ -127,30 +127,30 @@ Find the line ```timeout: 10s``` and replace to ```timeout: 10m```
 #### 10. Check the wallet balance
 
 ```sh
-user@15102:~# rly q balance kichain-t-4
+$ rly q balance kichain-t-4
 100000000utki
 ```
 ```sh
-user@15102:~# rly q balance testnet-croeseid-4
+$ rly q balance testnet-croeseid-4
 100000000basetcro
 ```
 
 #### 11. Initialize the clients:
-```rly light init kichain-t-4 -f```
+```$ rly light init kichain-t-4 -f```
 
-```rly light init testnet-croeseid-4 -f```
+```$ rly light init testnet-croeseid-4 -f```
 
 #### 12. Create a path between the two networks:
 - ###### rly paths generate [src-chain-id] [dst-chain-id] [name] [flags]
 
-```rly paths generate kichain-t-4 testnet-croeseid-4 transfer --port=transfer```
+```$ rly paths generate kichain-t-4 testnet-croeseid-4 transfer --port=transfer```
 
 If you have some issues try [Troubleshooting guide](#help)
 
 #### 13. Check that everything is OK at this point
 
 ```
-rly chains list -d
+$ rly chains list -d
  0: kichain-t-4          -> key(✔) bal(✔) light(✔) path(✔)
  1: testnet-croeseid-4   -> key(✔) bal(✔) light(✔) path(✔)
 ```
@@ -158,7 +158,7 @@ rly chains list -d
 #### 14. Create channel
 Note this command might take some time. If you have some errors try to repeat several times.
 
-```rly tx link transfer```
+```$ rly tx link transfer```
 
 If operation completes successfull the output of the last line should be like:
 
@@ -167,19 +167,19 @@ If operation completes successfull the output of the last line should be like:
 #### 15. Checking our channel 
 
 ```
-rly paths list -d
+$ rly paths list -d
 0: transfer          -> chns(✔) clnts(✔) conn(✔) chan(✔) (kichain-t-4:transfer<>testnet-croeseid-4:transfer)
 ```
 
 #### 16. Start relayer as a service
 ```
-sudo tee /etc/systemd/system/rlyd.service > /dev/null <<EOF [Unit] Description=relayer client After=network-online.target, kichaind.service [Service] User=$USER ExecStart=$(which rly) start transfer Restart=always RestartSec=3 LimitNOFILE=65535 [Install] WantedBy=multi-user.target EOF
+$ sudo tee /etc/systemd/system/rlyd.service > /dev/null <<EOF [Unit] Description=relayer client After=network-online.target, kichaind.service [Service] User=$USER ExecStart=$(which rly) start transfer Restart=always RestartSec=3 LimitNOFILE=65535 [Install] WantedBy=multi-user.target EOF
 ```
 Start rlyd daemon
 ```
-sudo systemctl daemon-reload
-sudo systemctl enable rlyd
-sudo systemctl start rlyd
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable rlyd
+$ sudo systemctl start rlyd
 ```
 
 Logs can be checked: ```journalctl -f -u rlyd ```
@@ -188,7 +188,7 @@ Logs can be checked: ```journalctl -f -u rlyd ```
 
 From croeseid to kichain
 
-```rly tx transfer testnet-croeseid-4 kichain-t-4 1000000basetcro tki1__YOUR_WALLET --path transfer```
+```$ rly tx transfer testnet-croeseid-4 kichain-t-4 1000000basetcro $(rly chains address kichain-t-4) --path transfer```
 
 The output should be:
 ###### ✔ [testnet-croeseid-4]@{289697} - msg(0:transfer) hash(1C1....your_hash....07)
@@ -196,10 +196,32 @@ The output should be:
 
 From kichain to croeseid
 
-```rly tx transfer kichain-t-4 testnet-croeseid-4 666000utki tcro__YOUR_WALLET --path transfer```
+```$ rly tx transfer kichain-t-4 testnet-croeseid-4 666000utki $(rly chains address testnet-croeseid-4) --path transfer```
 
 The output should be:
 ###### ✔ [kichain-t-4]@{221552} - msg(0:transfer) hash(E1....your_hash....6)
+
+#### 18. Sending tokens
+###### Check the token balances on both chains
+
+```
+$ rly q bal kichain-t-4 --ibc-denoms
+100000000ibc/EFD45E62E0368A6D1DAEC5D7C2352282EADF89236465D9DB8779687BAC0F690A,10000000utki
+$ rly q bal testnet-croeseid-4 --ibc-denoms
+1000000ibc/9F40556CD453E6FAEAAA13E0069C395685F62BFBF4204E2B076A6409371FE555,1000000000basetcro
+```
+
+###### Send some tokens from kichain to croeseid
+
+```
+$ rly tx transfer kichain-t-4 testnet-croeseid-4 10000ibc/EFD45E62E0368A6D1DAEC5D7C2352282EADF89236465D9DB8779687BAC0F690A $(rly chains address testnet-croeseid-4) --path transfer -d
+```
+
+###### Send some tokens from croeseid to kichain
+
+```
+$ rly tx transfer testnet-croeseid-4 kichain-t-4 20000ibc/9F40556CD453E6FAEAAA13E0069C395685F62BFBF4204E2B076A6409371FE555 $(rly chains address kichain-t-4) --path transfer -d
+```
 
 Example of txs from kichain to croeseid:
 
@@ -220,7 +242,7 @@ Example of txs from croeseid to kichain:
 <summary>Error: no concrete type registered for type URL </summary>
 in this case we have to create paths manually. Open relayer config.yaml
 
-```nano ~/.relayer/config/config.yaml```
+```$ nano ~/.relayer/config/config.yaml```
 
 navigate to paths line. delete "paths{}" and paste the folowing code instead
 
@@ -246,7 +268,7 @@ paths:
 <summary>Error: failed to get trusted header</summary>
 Try to update client manually
 	
-```rly tx update-clients transfer```
+```$ rly tx update-clients transfer```
 	
 If this doesn't help you have to re-generate a new path
 </details>
@@ -255,11 +277,11 @@ If this doesn't help you have to re-generate a new path
 <summary>Error: more than one transaction returned with query</summary>
 Check if you have unrelayed packets
 	
-```rly q unrelayed transfer```
+```$ rly q unrelayed transfer```
 	
 If you have some try
 	
-```rly tx rly transfer```
+```$ rly tx rly transfer```
 
 If that doesn't work, then create a new path
 </details>
@@ -267,11 +289,11 @@ If that doesn't work, then create a new path
 <summary>Error: no transactions returned with query</summary>
 Check if you have unrelayed packets
 	
-```rly q unrelayed transfer```
+```$ rly q unrelayed transfer```
 	
 If you have some try
 	
-```rly tx rly transfer```
+```$ rly tx rly transfer```
 
 If that doesn't work, then create a new path
 
