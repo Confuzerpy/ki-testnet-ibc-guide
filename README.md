@@ -140,21 +140,20 @@ user@15102:~# rly q balance testnet-croeseid-4
 
 ```rly light init testnet-croeseid-4 -f```
 
-#### 12. Check that everything is OK at this point
-
-```
-rly chains list -d
- 0: kichain-t-4          -> key(✔) bal(✔) light(✔) path(✔)
- 1: testnet-croeseid-4   -> key(✔) bal(✔) light(✔) path(✔)
-```
-
-#### 13. Create a path between the two networks:
+#### 12. Create a path between the two networks:
 - ###### rly paths generate [src-chain-id] [dst-chain-id] [name] [flags]
 
 ```rly paths generate kichain-t-4 testnet-croeseid-4 transfer --port=transfer```
 
 If you have some issues try [Troubleshooting guide](#help)
 
+#### 13. Check that everything is OK at this point
+
+```
+rly chains list -d
+ 0: kichain-t-4          -> key(✔) bal(✔) light(✔) path(✔)
+ 1: testnet-croeseid-4   -> key(✔) bal(✔) light(✔) path(✔)
+```
 
 #### 14. Create channel
 Note this command might take some time. If you have some errors try to repeat several times.
@@ -165,14 +164,14 @@ If operation completes successfull the output of the last line should be like:
 
 ```★ Channel created: [kichain-t-4]chan{channel-45}port{transfer} -> [testnet-croeseid-4]chan{channel-18}port{transfer}```
 
-#### 14. Checking our channel 
+#### 15. Checking our channel 
 
 ```
 rly paths list -d
 0: transfer          -> chns(✔) clnts(✔) conn(✔) chan(✔) (kichain-t-4:transfer<>testnet-croeseid-4:transfer)
 ```
 
-#### 15. Start relayer as a service
+#### 16. Start relayer as a service
 ```
 sudo tee /etc/systemd/system/rlyd.service > /dev/null <<EOF [Unit] Description=relayer client After=network-online.target, kichaind.service [Service] User=$USER ExecStart=$(which rly) start transfer Restart=always RestartSec=3 LimitNOFILE=65535 [Install] WantedBy=multi-user.target EOF
 ```
@@ -185,7 +184,7 @@ sudo systemctl start rlyd
 
 Logs can be checked: ```journalctl -f -u rlyd ```
 
-#### 16. Make some transactions
+#### 17. Make some transactions
 
 From croeseid to kichain
 
