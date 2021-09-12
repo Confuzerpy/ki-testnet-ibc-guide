@@ -178,8 +178,8 @@ It will link our channel as we made it above in chappter 14 and then relayer wil
 ```
 sudo tee /etc/systemd/system/rlyd.service > /dev/null <<EOF
 [Unit]
-Description=relayer
-client After=network-online.target
+Description=relayer client
+After=network-online.target
 
 [Service]
 User=$USER
