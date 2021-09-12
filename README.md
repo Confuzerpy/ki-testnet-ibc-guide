@@ -172,9 +172,26 @@ $ rly paths list -d
 ```
 
 #### 16. Start relayer as a service
+We are using ```rly tx link-then-start transfer --timeout 60s``` command.
+It will link our channel as we made it above in chappter 14 and then relayer will run with timeout 60 seconds.
+
 ```
-$ sudo tee /etc/systemd/system/rlyd.service > /dev/null <<EOF [Unit] Description=relayer client After=network-online.target, kichaind.service [Service] User=$USER ExecStart=$(which rly) start transfer Restart=always RestartSec=3 LimitNOFILE=65535 [Install] WantedBy=multi-user.target EOF
+sudo tee /etc/systemd/system/rlyd.service > /dev/null <<EOF
+[Unit]
+Description=relayer
+client After=network-online.target
+
+[Service]
+User=$USER
+ExecStart=$(which rly) tx link-then-start transfer --timeout 60s
+Restart=always
+RestartSec=3
+LimitNOFILE=65535
+[Install]
+WantedBy=multi-user.target
+EOF
 ```
+
 Start rlyd daemon
 ```
 $ sudo systemctl daemon-reload
